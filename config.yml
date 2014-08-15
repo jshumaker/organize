@@ -1,0 +1,19 @@
+transmission:
+  host: localhost
+  port: 9091
+  user: transmission
+  password: password
+directories:
+  # seeding - Directory where torrents are done downloading, but not yet finished seeding.
+  seeding: /path/to/seeding
+  # complete - NOTUSED Directory where torrents are moved to when done seeding, and the organizer doesn't know a better location to move them to.
+  #complete: /path/to/complete
+  # extracted - Directory to extract torrents into.
+  extracted: /path/to/extracted
+  # destination - Directory where files will be sorted out into.
+  destination: /path/to/destination
+events:
+  # Triggered any time a video is moved/copied, 2 parameters are specified to the script <file> <name>
+  # Where file is the new file path and name is the description of what was moved, "Show - Season - Episode"
+  # If not set, then nothing is executed.
+  #moved: /home/user/movecomplete.sh
