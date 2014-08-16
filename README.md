@@ -16,5 +16,5 @@ Dependencies
 ----
 Requires guessit and transmissionrpc to be installed for python.
 
-pip install guessit
-pip install transmissionrpc
+	pip install guessit
+	pip install transmissionrpc

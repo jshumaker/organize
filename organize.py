@@ -238,16 +238,16 @@ for file in video_files:
     source_file = os.path.join(config_data['directories']['seeding'],file)
     series = titlecase(video_info['series'])
     if 'episode' in video_info.keys():
-        episode_desc = " - Episode {0}".format(video_info['episodeNumber'])
+        episode_desc = "Episode {0}".format(video_info['episodeNumber'])
     else:
         # TODO: This is probably a special? Get some other details?
-        episode_desc = ""
+        episode_desc = "Special"
     if 'season' in video_info.keys():
         target_dir = os.path.join(config_data['directories']['destination'], series, 'Season {0}'.format(video_info['season'])) + os.sep
-        description = '{0} - Season {1}{2}'.format(video_info['series'], video_info['season'], episode_desc)
+        description = '{0} - Season {1} - {2}'.format(video_info['series'], video_info['season'], episode_desc)
     else:
         target_dir = os.path.join(config_data['directories']['destination'], series) + os.sep
-        description = '{0}{1}'.format(video_info['series'], episode_desc)
+        description = '{0} - {1}'.format(video_info['series'], episode_desc)
     target_file = os.path.join(target_dir, os.path.basename(file))
     
     if os.path.exists(target_file) and os.path.getsize(target_file) > os.path.getsize(source_file):
