@@ -22,10 +22,12 @@ video_file_regex = '.*\.(mkv|mp4|avi|ogm)$'
 parser = argparse.ArgumentParser(description='Organize video downloads.')
 parser.add_argument('--config', default=default_config, help='Configuration file, default ~/.organize/config.yml')
 parser.add_argument('--logfile', default=default_log, help='Log file, default ~/.organize/organize.log')
-parser.add_argument('--dryrun', action='store_true', help="Don't perform any actions, instead report what would be done.")
+parser.add_argument('--dryrun', action='store_true',
+                    help="Don't perform any actions, instead report what would be done.")
 parser.add_argument('--debug', action='store_true', help="Enable debug output.")
 parser.add_argument('--cron', action='store_true', help="Disable all console output.")
-parser.add_argument('--properclean', action='store_true', help="Performs a proper/repack clean on the entire destinationfolder.")
+parser.add_argument('--properclean', action='store_true',
+                    help="Performs a proper/repack clean on the entire destinationfolder.")
 
 args = parser.parse_args()
 
@@ -235,12 +237,17 @@ for file in video_files:
     video_info = guessit.guess_file_info(file)
     source_file = os.path.join(config_data['directories']['seeding'],file)
     series = titlecase(video_info['series'])
+    if 'episode' in video_info.keys():
+        episode_desc = " - Episode {0}".format(video_info['episodeNumber'])
+    else:
+        # TODO: This is probably a special? Get some other details?
+        episode_desc = ""
     if 'season' in video_info.keys():
         target_dir = os.path.join(config_data['directories']['destination'], series, 'Season {0}'.format(video_info['season'])) + os.sep
-        description = '{0} - Season {1} - Episode {2}'.format(video_info['series'], video_info['season'], video_info['episodeNumber'])
+        description = '{0} - Season {1}{2}'.format(video_info['series'], video_info['season'], episode_desc)
     else:
         target_dir = os.path.join(config_data['directories']['destination'], series) + os.sep
-        description = '{0} - Episode {2}'.format(video_info['series'], video_info['episodeNumber'])
+        description = '{0}{1}'.format(video_info['series'], episode_desc)
     target_file = os.path.join(target_dir, os.path.basename(file))
     
     if os.path.exists(target_file) and os.path.getsize(target_file) > os.path.getsize(source_file):
