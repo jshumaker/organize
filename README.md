@@ -11,3 +11,10 @@ To use, place config.yml in ~/.organize/ and edit the transmission configuration
 Test run the script. If no errors then add it to conrtab with --cron parameter:
 
 <pathto>/organize.py --cron
+
+Dependencies
+----
+Requires guessit and transmissionrpc to be installed for python.
+
+pip install guessit
+pip install transmissionrpc
