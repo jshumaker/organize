@@ -237,7 +237,7 @@ for file in video_files:
     video_info = guessit.guess_file_info(file)
     source_file = os.path.join(config_data['directories']['seeding'],file)
     series = titlecase(video_info['series'])
-    if 'episode' in video_info.keys():
+    if 'episodeNumber' in video_info.keys():
         episode_desc = "Episode {0}".format(video_info['episodeNumber'])
     else:
         # TODO: This is probably a special? Get some other details?
