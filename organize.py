@@ -212,7 +212,7 @@ for item in sorted(os.listdir(config_data['directories']['seeding'])):
             else:
                 try:
                     logging.info("Extracting rar file: {0}".format(rarfile))
-                    command = ['unrar', 'x', '-o-', '-y', rarfile, config_data['directories']['extracted']]
+                    command = ['unrar', 'x', '-o-', '-y', '-idq', rarfile, config_data['directories']['extracted']]
                     p = subprocess.Popen(command, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT)
                     raroutput = p.communicate()[0]
                     if p.returncode != 0:
