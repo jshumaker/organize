@@ -87,12 +87,12 @@ db.commit()
 
 def db_add_copied(file):
     cursor = db.cursor()
-    cursor.execute('INSERT INTO copied(file) VALUES (?)', file)
+    cursor.execute('INSERT INTO copied(file) VALUES (?)', (file,))
     db.commit()
     
 def db_rem_copied(file):
     cursor = db.cursor()
-    cursor.execute('DELETE FROM copied WHERE file = ?', file)
+    cursor.execute('DELETE FROM copied WHERE file = ?', (file,))
     db.commit()
     
 def db_get_copied():
@@ -212,16 +212,17 @@ for item in sorted(os.listdir(config_data['directories']['seeding'])):
             else:
                 try:
                     logging.info("Extracting rar file: {0}".format(rarfile))
-                    p = subprocess.Popen(['unrar', 'x', '-o-', '-y', rarfile, config_data['directories']['extracted']], stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT)
-                    taroutput = p.communicate()[0]
+                    command = ['unrar', 'x', '-o-', '-y', rarfile, config_data['directories']['extracted']]
+                    p = subprocess.Popen(command, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT)
+                    raroutput = p.communicate()[0]
                     if p.returncode != 0:
-                        logging.error("Failed to extract {0}:\n{1}".format(tarfile, taroutput))
+                        logging.error("Failed to extractCommand: {0} \nOutput:\n{1}".format(' '.join(command), raroutput))
                     else:
                         logging.info("Extracted rar file: {0}".format(rarfile))
                         open(os.path.join(path,'.autoextracted'), 'w').close()
                 except:
                     logging.exception('Failed to extract {0}'.format(rarfile))
-    elif re.match(item, video_file_regex, re.IGNORECASE):
+    elif re.match(video_file_regex, item, re.IGNORECASE):
         video_files.append(item)
     else:
         logging.info('Unrecognized item: {0}'.format(item))
