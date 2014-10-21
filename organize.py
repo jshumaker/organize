@@ -102,7 +102,7 @@ def db_get_copied():
 
 def move_event(file, description):
     logging.debug('Checking for move event.')
-    if 'events' in config_data.keys() and config_data['events'] is not None and 'moved' in config_data['events']:
+    if 'events' in config_data.keys() and config_data['events'] is not None and 'moved' in config_data['events'] and config_data['events']['moved']:
         event_args = [config_data['events']['moved'], file, description]
         logging.info('Running move event: {0}'.format(" ".join(event_args)))
         try:
