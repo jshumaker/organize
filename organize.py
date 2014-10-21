@@ -102,7 +102,7 @@ def db_get_copied():
 
 def move_event(file, description):
     logging.debug('Checking for move event.')
-    if 'events' in config_data.keys() and 'moved' in config_data['events']:
+    if 'events' in config_data.keys() and config_data['events'] is not None and 'moved' in config_data['events']:
         event_args = [config_data['events']['moved'], file, description]
         logging.info('Running move event: {0}'.format(" ".join(event_args)))
         try:
@@ -216,7 +216,7 @@ for item in sorted(os.listdir(config_data['directories']['seeding'])):
                     p = subprocess.Popen(command, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT)
                     raroutput = p.communicate()[0]
                     if p.returncode != 0:
-                        logging.error("Failed to extractCommand: {0} \nOutput:\n{1}".format(' '.join(command), raroutput))
+                        logging.error("Failed to extract, command: {0} \nOutput:\n{1}".format(' '.join(command), raroutput))
                     else:
                         logging.info("Extracted rar file: {0}".format(rarfile))
                         open(os.path.join(path,'.autoextracted'), 'w').close()
