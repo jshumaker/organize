@@ -17,7 +17,7 @@ import sqlite3
 
 default_config = os.path.join(os.getenv("HOME"), '.organize', 'config.yml')
 default_log = os.path.join(os.getenv("HOME"), '.organize', 'organize.log')
-video_file_regex = '.*\.(mkv|mp4|avi|ogm)$'
+video_file_regex = '.*\.(mkv|mp4|avi|ogm|ts)$'
 
 parser = argparse.ArgumentParser(description='Organize video downloads.')
 parser.add_argument('--config', default=default_config, help='Configuration file, default ~/.organize/config.yml')
@@ -203,7 +203,7 @@ for item in sorted(os.listdir(config_data['directories']['seeding'])):
         #rar_files = [file for file in rar_files if (not re.search('\.subs\.', file, re.IGNORECASE))]
         rar_files = [file for file in rar_files if (not re.search('\.sample\.', file, re.IGNORECASE))]
         
-        video_files = list(find_files(path, video_file_regex))
+        video_files += list(find_files(path, video_file_regex))
         
         #print("{0} : {1} rar files, {2} video files".format(item, len(rar_files), len(video_files)))
         for rarfile in rar_files:
@@ -235,66 +235,69 @@ video_files = [file for file in video_files if \
     ]
     
 for file in video_files:
-    video_info = guessit.guess_file_info(file)
-    source_file = os.path.join(config_data['directories']['seeding'],file)
-    series = titlecase(video_info['series'])
-    if 'episodeNumber' in video_info.keys():
-        episode_desc = "Episode {0}".format(video_info['episodeNumber'])
-    else:
-        # TODO: This is probably a special? Get some other details?
-        episode_desc = "Special"
-    if 'season' in video_info.keys():
-        target_dir = os.path.join(config_data['directories']['destination'], series, 'Season {0}'.format(video_info['season'])) + os.sep
-        description = '{0} - Season {1} - {2}'.format(video_info['series'], video_info['season'], episode_desc)
-    else:
-        target_dir = os.path.join(config_data['directories']['destination'], series) + os.sep
-        description = '{0} - {1}'.format(video_info['series'], episode_desc)
-    target_file = os.path.join(target_dir, os.path.basename(file))
-    
-    if os.path.exists(target_file) and os.path.getsize(target_file) > os.path.getsize(source_file):
-        logging.error('Target file already exists and is larger, {0}'.format(target_file))
-        continue
-        
-    if not os.path.exists(target_dir):
-        os.makedirs(target_dir)
-    if is_seeding(source_file):
-        if source_file in db_get_copied():
-            logging.debug('Ignoring file {0}, it has already been copied.'.format(source_file))
-        elif args.dryrun:
-            logging.info('Would copy and schedule original for delete {0} to {1}'.format(source_file, target_dir))
+    try:
+        video_info = guessit.guess_file_info(file)
+        source_file = os.path.join(config_data['directories']['seeding'],file)
+        series = titlecase(video_info['series'])
+        if 'episodeNumber' in video_info.keys():
+            episode_desc = "Episode {0}".format(video_info['episodeNumber'])
         else:
-            # Copy the file and record in some sort of db the later removal.
-            logging.info('Copying and schedule original for delete: {0} to {1}'.format(source_file, target_dir))
-            try:
-                db_add_copied(source_file)
-                shutil.copy(source_file, target_dir)
-                move_event(target_file, description)
-                proper_cleanup(target_file)
-            except:
-                logging.exception('Failed to copy file.')
-    elif source_file in db_get_copied():
-        if args.dryrun:
-            logging.info('Would delete already copied file {0}'.format(source_file))
+            # TODO: This is probably a special? Get some other details?
+            episode_desc = "Special"
+        if 'season' in video_info.keys():
+            target_dir = os.path.join(config_data['directories']['destination'], series, 'Season {0}'.format(video_info['season'])) + os.sep
+            description = '{0} - Season {1} - {2}'.format(video_info['series'], video_info['season'], episode_desc)
         else:
-            logging.info('Deleting already moved file {0}'.format(source_file))
-            try:
-                os.remove(source_file)
-            except:
-                logging.exception('Failed to delete file.')
-    else:
-        if args.dryrun:
-            logging.info('Would move {0} to {1}'.format(source_file, target_dir))
+            target_dir = os.path.join(config_data['directories']['destination'], series) + os.sep
+            description = '{0} - {1}'.format(video_info['series'], episode_desc)
+        target_file = os.path.join(target_dir, os.path.basename(file))
+
+        if os.path.exists(target_file) and os.path.getsize(target_file) > os.path.getsize(source_file):
+            logging.error('Target file already exists and is larger, {0}'.format(target_file))
+            continue
+
+        if not os.path.exists(target_dir):
+            os.makedirs(target_dir)
+        if is_seeding(source_file):
+            if source_file in db_get_copied():
+                logging.debug('Ignoring file {0}, it has already been copied.'.format(source_file))
+            elif args.dryrun:
+                logging.info('Would copy and schedule original for delete {0} to {1}'.format(source_file, target_dir))
+            else:
+                # Copy the file and record in some sort of db the later removal.
+                logging.info('Copying and schedule original for delete: {0} to {1}'.format(source_file, target_dir))
+                try:
+                    db_add_copied(source_file)
+                    shutil.copy(source_file, target_dir)
+                    move_event(target_file, description)
+                    proper_cleanup(target_file)
+                except:
+                    logging.exception('Failed to copy file.')
+        elif source_file in db_get_copied():
+            if args.dryrun:
+                logging.info('Would delete already copied file {0}'.format(source_file))
+            else:
+                logging.info('Deleting already moved file {0}'.format(source_file))
+                try:
+                    os.remove(source_file)
+                except:
+                    logging.exception('Failed to delete file.')
         else:
-            logging.info('Moving {0} to {1}'.format(source_file, target_dir))
-            try:
-                # Delete any pre-existing files in the way. Default is to replace, check happens earlier to make sure we're not replacing with an incomplete file.
-                if os.path.exists(target_file):
-                    os.remove(target_file)
-                shutil.move(source_file, target_dir)
-                move_event(target_file, description)
-                proper_cleanup(target_file)
-            except:
-                logging.exception('Failed to move file.')
+            if args.dryrun:
+                logging.info('Would move {0} to {1}'.format(source_file, target_dir))
+            else:
+                logging.info('Moving {0} to {1}'.format(source_file, target_dir))
+                try:
+                    # Delete any pre-existing files in the way. Default is to replace, check happens earlier to make sure we're not replacing with an incomplete file.
+                    if os.path.exists(target_file):
+                        os.remove(target_file)
+                    shutil.move(source_file, target_dir)
+                    move_event(target_file, description)
+                    proper_cleanup(target_file)
+                except:
+                    logging.exception('Failed to move file.')
+    except:
+        logging.exception('Failed to process {0}'.format(file))
                 
 # Clean up seeding folder of auto extracted files that are no longer seeding.
 for item in sorted(os.listdir(config_data['directories']['seeding'])):
