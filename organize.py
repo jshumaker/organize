@@ -237,7 +237,10 @@ video_files = [file for file in video_files if \
 for file in video_files:
     try:
         video_info = guessit.guess_file_info(file)
-        source_file = os.path.join(config_data['directories']['seeding'],file)
+        if not 'series' in video_info.keys():
+            logging.warning('Unable to parse series name from: {}'.format(file))
+            continue
+        source_file = os.path.join(config_data['directories']['seeding'], file)
         series = titlecase(video_info['series'])
         if 'episodeNumber' in video_info.keys():
             episode_desc = "Episode {0}".format(video_info['episodeNumber'])
