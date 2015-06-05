@@ -17,3 +17,8 @@ events:
   # Where file is the new file path and name is the description of what was moved, "Show - Season - Episode"
   # If not set, then nothing is executed.
   #moved: /home/user/movecomplete.sh
+overrides:
+  # Regular expressions that if they match the file to be moved, then they override properties.
+  # Example The following example matches any show beginning with Forever and forces ites series name to be Forever (2014)
+  # ^Forever.*:
+  #   series: Forever (2014)

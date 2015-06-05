@@ -14,6 +14,10 @@ import shutil
 import subprocess
 import copy
 import sqlite3
+import string
+from pyxdameraulevenshtein import damerau_levenshtein_distance, normalized_damerau_levenshtein_distance, damerau_levenshtein_distance_withNPArray, normalized_damerau_levenshtein_distance_withNPArray
+import numpy as np
+
 
 default_config = os.path.join(os.getenv("HOME"), '.organize', 'config.yml')
 default_log = os.path.join(os.getenv("HOME"), '.organize', 'organize.log')
@@ -73,7 +77,12 @@ config_copy = copy.deepcopy(config_data)
 config_copy['transmission']['password'] = '<redacted>'
 logging.debug('Config file: {0}'.format(config_copy))
 
-    
+
+if 'overrides' in config_data.keys():
+    overrides = config_data['overrides']
+else:
+    overrides = {}
+
 # Open or initialize database.
 database_file = os.path.join(os.getenv("HOME"), '.organize', 'copied.db')
 db = sqlite3.connect(database_file)
@@ -233,15 +242,53 @@ video_files = [file for file in video_files if \
     not re.search('/sample/', file, re.IGNORECASE) \
     and not re.search('[\.\-]sample\.', file, re.IGNORECASE)
     ]
-    
+
+
+def compare_strip(s):
+    """
+    Modify string for series comparison. Strips punctuation and sets to lowercase.
+    :param s:
+    :return:
+    """
+    table = string.maketrans("", "")
+    return s.lower().translate(table, string.punctuation)
+
+# Get list of pre-existing series folders.
+d = config_data['directories']['destination']
+existing_series = [o for o in os.listdir(d) if os.path.isdir(os.path.join(d, o))]
+existing_series_compare = np.array([compare_strip(o) for o in existing_series], dtype='S')
+
 for file in video_files:
     try:
-        video_info = guessit.guess_file_info(file)
+        base_filename = os.path.basename(file)
+        video_info = guessit.guess_file_info(base_filename)
         if not 'series' in video_info.keys():
             logging.warning('Unable to parse series name from: {}'.format(file))
             continue
         source_file = os.path.join(config_data['directories']['seeding'], file)
         series = titlecase(video_info['series'])
+
+
+        # Check if there is a similar name we should use instead.
+        distances = normalized_damerau_levenshtein_distance_withNPArray(compare_strip(series), existing_series_compare)
+        #print(distances)
+        min_distance = 1.0
+        min_series = series
+        for i in range(len(existing_series)):
+            if distances[i] < min_distance:
+                min_distance = distances[i]
+                min_series = existing_series[i]
+        logging.debug('Closest match({}): {} '.format(min_distance, min_series))
+        if min_distance < 0.125:
+            series = min_series
+
+        # Check if there are overrides.
+        for override in overrides.keys():
+            if re.match(override, base_filename, re.IGNORECASE):
+                if 'series' in overrides[override]:
+                    series = overrides[override]['series']
+                    logging.info('Overriding series name')
+
         if 'episodeNumber' in video_info.keys():
             episode_desc = "Episode {0}".format(video_info['episodeNumber'])
         else:
@@ -249,17 +296,17 @@ for file in video_files:
             episode_desc = "Special"
         if 'season' in video_info.keys():
             target_dir = os.path.join(config_data['directories']['destination'], series, 'Season {0}'.format(video_info['season'])) + os.sep
-            description = '{0} - Season {1} - {2}'.format(video_info['series'], video_info['season'], episode_desc)
+            description = '{0} - Season {1} - {2}'.format(series, video_info['season'], episode_desc)
         else:
             target_dir = os.path.join(config_data['directories']['destination'], series) + os.sep
-            description = '{0} - {1}'.format(video_info['series'], episode_desc)
+            description = '{0} - {1}'.format(series, episode_desc)
         target_file = os.path.join(target_dir, os.path.basename(file))
 
         if os.path.exists(target_file) and os.path.getsize(target_file) > os.path.getsize(source_file):
             logging.error('Target file already exists and is larger, {0}'.format(target_file))
             continue
 
-        if not os.path.exists(target_dir):
+        if not os.path.exists(target_dir) and not args.dryrun:
             os.makedirs(target_dir)
         if is_seeding(source_file):
             if source_file in db_get_copied():

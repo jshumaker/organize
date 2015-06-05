@@ -14,7 +14,8 @@ Test run the script. If no errors then add it to conrtab with --cron parameter:
 
 Dependencies
 ----
-Requires guessit and transmissionrpc to be installed for python.
+Requires the following to be installed for python.
 
 	pip install guessit
 	pip install transmissionrpc
+    pip install pyxDamerauLevenshtein
