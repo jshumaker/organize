@@ -250,8 +250,12 @@ def compare_strip(s):
     :param s:
     :return:
     """
-    table = string.maketrans("", "")
-    return s.lower().translate(table, string.punctuation)
+    # The following commented lines work in python 3 only.
+    #table = string.maketrans("", "")
+    #return s.lower().translate(table, string.punctuation)
+    exclude = set(string.punctuation)
+    s = ''.join(ch for ch in s if ch not in exclude)
+    return s.lower()
 
 # Get list of pre-existing series folders.
 d = config_data['directories']['destination']
