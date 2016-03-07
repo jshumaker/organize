@@ -4,7 +4,7 @@ import argparse
 import yaml
 import os
 import os.path
-import guessit
+from guessit import guessit
 import re
 import logging
 import sys
@@ -170,18 +170,18 @@ def proper_cleanup(file):
         return
     
     directory = os.path.dirname(file)
-    video_info = guessit.guessit(file)
-    if not 'series' in video_info.keys() or not 'episode' in video_info.keys():
+    video_info = guessit(file)
+    if not 'title' in video_info.keys() or not 'episode' in video_info.keys():
         logging.debug('Series and episode number undetermined, skipping proper/repack cleanup for {0}'.format(file))
         return
     matches = [file]
     for item in os.listdir(directory):
         matchfile = os.path.join(directory, item)
         if matchfile != file and os.path.isfile(matchfile):
-            video_info2 = guessit.guessit(matchfile)
+            video_info2 = guessit(matchfile)
             if (not 'season' in video_info.keys() or ('season' in video_info2.keys() and video_info['season'] == video_info2['season'])) and \
                (not 'screen_size' in video_info.keys() or ('screen_size' in video_info2.keys() and video_info['screen_size'] == video_info2['screen_size'])) and \
-               'series' in video_info2.keys() and video_info['series'] == video_info2['series'] and \
+               'title' in video_info2.keys() and video_info['title'] == video_info2['title'] and \
                'episode' in video_info2.keys() and video_info['episode'] == video_info2['episode']:
                 matches.append(matchfile)
     matches.sort(key=lambda x: os.path.getmtime(x), reverse=True)
@@ -265,12 +265,12 @@ existing_series_compare = np.array([compare_strip(o) for o in existing_series], 
 for file in video_files:
     try:
         base_filename = os.path.basename(file)
-        video_info = guessit.guessit(base_filename)
-        if not 'series' in video_info.keys():
+        video_info = guessit(base_filename)
+        if not 'title' in video_info.keys():
             logging.warning('Unable to parse series name from: {}'.format(file))
             continue
         source_file = os.path.join(config_data['directories']['seeding'], file)
-        series = titlecase(video_info['series'])
+        series = titlecase(video_info['title'])
 
 
         # Check if there is a similar name we should use instead.
@@ -289,8 +289,8 @@ for file in video_files:
         # Check if there are overrides.
         for override in overrides.keys():
             if re.match(override, base_filename, re.IGNORECASE):
-                if 'series' in overrides[override]:
-                    series = overrides[override]['series']
+                if 'title' in overrides[override]:
+                    series = overrides[override]['title']
                     logging.info('Overriding series name')
 
         if 'episode' in video_info.keys():
