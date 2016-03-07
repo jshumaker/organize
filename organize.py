@@ -170,19 +170,19 @@ def proper_cleanup(file):
         return
     
     directory = os.path.dirname(file)
-    video_info = guessit.guess_file_info(file)
-    if not 'series' in video_info.keys() or not 'episodeNumber' in video_info.keys():
+    video_info = guessit.guessit(file)
+    if not 'series' in video_info.keys() or not 'episode' in video_info.keys():
         logging.debug('Series and episode number undetermined, skipping proper/repack cleanup for {0}'.format(file))
         return
     matches = [file]
     for item in os.listdir(directory):
         matchfile = os.path.join(directory, item)
         if matchfile != file and os.path.isfile(matchfile):
-            video_info2 = guessit.guess_file_info(matchfile)
+            video_info2 = guessit.guessit(matchfile)
             if (not 'season' in video_info.keys() or ('season' in video_info2.keys() and video_info['season'] == video_info2['season'])) and \
-               (not 'screenSize' in video_info.keys() or ('screenSize' in video_info2.keys() and video_info['screenSize'] == video_info2['screenSize'])) and \
+               (not 'screen_size' in video_info.keys() or ('screen_size' in video_info2.keys() and video_info['screen_size'] == video_info2['screen_size'])) and \
                'series' in video_info2.keys() and video_info['series'] == video_info2['series'] and \
-               'episodeNumber' in video_info2.keys() and video_info['episodeNumber'] == video_info2['episodeNumber']:
+               'episode' in video_info2.keys() and video_info['episode'] == video_info2['episode']:
                 matches.append(matchfile)
     matches.sort(key=lambda x: os.path.getmtime(x), reverse=True)
 
@@ -265,7 +265,7 @@ existing_series_compare = np.array([compare_strip(o) for o in existing_series], 
 for file in video_files:
     try:
         base_filename = os.path.basename(file)
-        video_info = guessit.guess_file_info(base_filename)
+        video_info = guessit.guessit(base_filename)
         if not 'series' in video_info.keys():
             logging.warning('Unable to parse series name from: {}'.format(file))
             continue
@@ -293,8 +293,8 @@ for file in video_files:
                     series = overrides[override]['series']
                     logging.info('Overriding series name')
 
-        if 'episodeNumber' in video_info.keys():
-            episode_desc = "Episode {0}".format(video_info['episodeNumber'])
+        if 'episode' in video_info.keys():
+            episode_desc = "Episode {0}".format(video_info['episode'])
         else:
             # TODO: This is probably a special? Get some other details?
             episode_desc = "Special"
