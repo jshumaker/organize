@@ -73,6 +73,9 @@ logging.getLogger('guessit').setLevel(logging.CRITICAL)
 logging.getLogger('GuessEpisodeInfoFromPosition').setLevel(logging.CRITICAL)
 logging.getLogger('GuessFiletype').setLevel(logging.CRITICAL)
 logging.getLogger('stevedore.extension').setLevel(logging.CRITICAL)
+logging.getLogger('rebulk.rules').setLevel(logging.CRITICAL)
+logging.getLogger('rebulk.rebulk').setLevel(logging.CRITICAL)
+logging.getLogger('rebulk.processors').setLevel(logging.CRITICAL)
 
 
 scriptdesc = "TV Torrent Organizer"
