@@ -197,7 +197,7 @@ def proper_cleanup(file):
     matches = [file]
     for item in os.listdir(directory):
         matchfile = os.path.join(directory, item)
-        if matchfile != file and os.path.isfile(matchfile):
+        if matchfile != file and os.path.isfile(matchfile) and re.match(video_file_regex, matchfile, re.IGNORECASE):
             video_info2 = guessit(matchfile)
             if (not 'season' in video_info.keys() or ('season' in video_info2.keys() and video_info['season'] == video_info2['season'])) and \
                (not 'screen_size' in video_info.keys() or ('screen_size' in video_info2.keys() and video_info['screen_size'] == video_info2['screen_size'])) and \
