@@ -137,8 +137,8 @@ while (client is None and retry_count < 5):
     try:
         client = transmissionrpc.Client(config_data['transmission']['host'],port=config_data['transmission']['port'],user=config_data['transmission']['user'],password=config_data['transmission']['password'])
     except:
-    	logging.exception("Failed to connect to transmission host, waiting 1 second and retrying")
-        time.sleep(1)
+    	logging.exception("Failed to connect to transmission host, waiting 5 seconds and retrying")
+        time.sleep(5)
 
 if client is None:
     logging.error("Failed to connect to transmission")
