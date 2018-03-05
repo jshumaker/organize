@@ -18,9 +18,11 @@ import string
 from pyxdameraulevenshtein import damerau_levenshtein_distance, normalized_damerau_levenshtein_distance, damerau_levenshtein_distance_withNPArray, normalized_damerau_levenshtein_distance_withNPArray
 import numpy as np
 import time
+from singleton import SingleInstance
 
-default_config = os.path.join(os.getenv("HOME"), '.organize', 'config.yml')
-default_log = os.path.join(os.getenv("HOME"), '.organize', 'organize.log')
+default_dir = os.path.join(os.getenv("HOME"), '.organize')
+default_config = os.path.join(default_dir, 'config.yml')
+default_log = os.path.join(default_dir, 'organize.log')
 video_file_regex = '.*\.(mkv|mp4|avi|ogm|ts)$'
 
 parser = argparse.ArgumentParser(description='Organize video downloads.')
@@ -58,6 +60,13 @@ if not args.cron:
     console.setFormatter(formatter)
     # add the handler to the root logger
     logging.getLogger('').addHandler(console)
+
+# Prevent multiple copies
+try:
+    myinstance = SingleInstance()
+except:
+    sys.exit(0)
+
 
 #Disable logging for guessit
 logging.getLogger('guessit').setLevel(logging.CRITICAL)
