@@ -17,7 +17,7 @@ import sqlite3
 import string
 from pyxdameraulevenshtein import damerau_levenshtein_distance, normalized_damerau_levenshtein_distance, damerau_levenshtein_distance_withNPArray, normalized_damerau_levenshtein_distance_withNPArray
 import numpy as np
-
+import time
 
 default_config = os.path.join(os.getenv("HOME"), '.organize', 'config.yml')
 default_log = os.path.join(os.getenv("HOME"), '.organize', 'organize.log')
@@ -122,8 +122,18 @@ def move_event(file, description):
         except:
             logging.exception('Failed to execute move event {0}'.format(config_data['events']['move']))
         
+client = None
+retry_count = 0
+while (client is None and retry_count < 5):
+    try:
+        client = transmissionrpc.Client(config_data['transmission']['host'],port=config_data['transmission']['port'],user=config_data['transmission']['user'],password=config_data['transmission']['password'])
+    except:
+    	logging.exception("Failed to connect to transmission host, waiting 1 second and retrying")
+        time.sleep(1)
 
-client = transmissionrpc.Client(config_data['transmission']['host'],port=config_data['transmission']['port'],user=config_data['transmission']['user'],password=config_data['transmission']['password'])
+if client is None:
+    logging.error("Failed to connect to transmission")
+    sys.exit(1)
 
 # Cache a list of files that are seeding.
 logging.debug('Creating cache of files from transmission.')
