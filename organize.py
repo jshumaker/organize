@@ -134,6 +134,7 @@ def move_event(file, description):
 client = None
 retry_count = 0
 while (client is None and retry_count < 5):
+    retry_count += 1
     try:
         client = transmissionrpc.Client(config_data['transmission']['host'],port=config_data['transmission']['port'],user=config_data['transmission']['user'],password=config_data['transmission']['password'])
     except:
