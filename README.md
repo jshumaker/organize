@@ -16,6 +16,4 @@ Dependencies
 ----
 Requires the following to be installed for python.
 
-	pip install guessit
-	pip install transmissionrpc
-    pip install pyxDamerauLevenshtein
+	pip3 install -r requirements.txt
