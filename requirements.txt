@@ -1,4 +1,4 @@
-pyxDamerauLevenshtein~=1.3.2
+pyxDamerauLevenshtein
 transmissionrpc~=0.11
 guessit~=2.0.4
 numpy~=1.16.2
