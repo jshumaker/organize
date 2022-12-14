@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import argparse
 import yaml
@@ -15,10 +15,11 @@ import subprocess
 import copy
 import sqlite3
 import string
-from pyxdameraulevenshtein import damerau_levenshtein_distance, normalized_damerau_levenshtein_distance, damerau_levenshtein_distance_withNPArray, normalized_damerau_levenshtein_distance_withNPArray
+from pyxdameraulevenshtein import damerau_levenshtein_distance_seqs, normalized_damerau_levenshtein_distance_seqs
 import numpy as np
 import time
-from singleton import SingleInstance
+import zc.lockfile
+
 
 default_dir = os.path.join(os.getenv("HOME"), '.organize')
 default_config = os.path.join(default_dir, 'config.yml')
@@ -44,7 +45,7 @@ else:
     loglevel = logging.INFO
 
 # Old Format: format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
-    
+
 logging.basicConfig(level=loglevel,
                     format='%(asctime)s %(levelname)-8s %(message)s',
                     datefmt='%m-%d %H:%M',
@@ -63,8 +64,10 @@ if not args.cron:
 
 # Prevent multiple copies
 try:
-    myinstance = SingleInstance()
-except:
+    lock = zc.lockfile.LockFile(os.path.join(os.path.realpath(os.path.dirname(__file__)),'organize.lock'))
+except Exception as e:
+    logging.exception(e)
+    logging.warning('Scripts is already running, exiting')
     sys.exit(0)
 
 
@@ -141,7 +144,7 @@ while (client is None and retry_count < 5):
     try:
         client = transmissionrpc.Client(config_data['transmission']['host'],port=config_data['transmission']['port'],user=config_data['transmission']['user'],password=config_data['transmission']['password'])
     except:
-    	logging.exception("Failed to connect to transmission host, waiting 5 seconds and retrying")
+        logging.exception("Failed to connect to transmission host, waiting 5 seconds and retrying")
         time.sleep(5)
 
 if client is None:
@@ -158,7 +161,7 @@ try:
         dirwithname = os.path.join(directory, torrent.name)
         #logging.debug('Adding seeding directory: {0}'.format(dirwithname))
         torrent_dirs.append(dirwithname)
-        for id, info in client.get_files(ids=[torrent.id])[torrent.id].iteritems():
+        for id, info in iter(client.get_files(ids=[torrent.id])[torrent.id].items()):
             #logging.debug(os.path.join(directory,info['name']).encode('ascii', 'replace'))
             torrent_files.append(os.path.join(directory,info['name']))
 except:
@@ -297,7 +300,7 @@ for file in video_files:
 
 
         # Check if there is a similar name we should use instead.
-        distances = normalized_damerau_levenshtein_distance_withNPArray(compare_strip(series), existing_series_compare)
+        distances = normalized_damerau_levenshtein_distance_seqs(compare_strip(series), existing_series_compare)
         #print(distances)
         min_distance = 1.0
         min_series = series
