@@ -309,12 +309,16 @@ for file in video_files:
         if min_distance < 0.125:
             series = min_series
 
+        destination = config_data['directories']['destination']
         # Check if there are overrides.
-        for override in overrides.keys():
-            if re.match(override, base_filename, re.IGNORECASE):
-                if 'title' in overrides[override]:
-                    series = overrides[override]['title']
-                    logging.info('Overriding series name')
+        for override in overrides:
+            if re.match(override['match'], base_filename, re.IGNORECASE):
+                if 'series' in override:
+                    series = override['series']
+                    logging.debug('Overriding series name to: {0}'.format(series))
+                if 'destination' in override:
+                    destination = override['destination']
+                    logging.debug('Overriding destination folder to: {0}'.format(destination))
 
         if 'episode' in video_info.keys():
             episode_desc = "Episode {0}".format(video_info['episode'])
@@ -322,10 +326,10 @@ for file in video_files:
             # TODO: This is probably a special? Get some other details?
             episode_desc = "Special"
         if 'season' in video_info.keys():
-            target_dir = os.path.join(config_data['directories']['destination'], series, 'Season {0}'.format(video_info['season'])) + os.sep
+            target_dir = os.path.join(destination, series, 'Season {0}'.format(video_info['season'])) + os.sep
             description = '{0} - Season {1} - {2}'.format(series, video_info['season'], episode_desc)
         else:
-            target_dir = os.path.join(config_data['directories']['destination'], series) + os.sep
+            target_dir = os.path.join(destination, series) + os.sep
             description = '{0} - {1}'.format(series, episode_desc)
         target_file = os.path.join(target_dir, os.path.basename(file))
 
