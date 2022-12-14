@@ -375,6 +375,11 @@ for file in video_files:
                     shutil.move(source_file, target_dir)
                     move_event(target_file, description)
                     proper_cleanup(target_file)
+                except IOError as e:
+                    if e.errno == 13:
+                        logging.warn('Invalid permissions to move file.')
+                    else:
+                        logging.exception('Failed to move file.')
                 except:
                     logging.exception('Failed to move file.')
     except:
