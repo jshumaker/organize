@@ -1,5 +1,5 @@
 pyxDamerauLevenshtein
 transmissionrpc~=0.11
-guessit~=2.0.4
+guessit~=3.5.0
 numpy~=1.16.2
 zc.lockfile~=2.0
