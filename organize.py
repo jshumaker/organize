@@ -66,7 +66,6 @@ if not args.cron:
 try:
     lock = zc.lockfile.LockFile(os.path.join(os.path.realpath(os.path.dirname(__file__)),'organize.lock'))
 except Exception as e:
-    logging.exception(e)
     logging.warning('Scripts is already running, exiting')
     sys.exit(0)
 
